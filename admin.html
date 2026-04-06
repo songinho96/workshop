@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>몸으로 말해요 제시어 - 관리자 페이지</title>
+    <title>게임 관리자 페이지</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;800&family=SUIT:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -19,11 +19,10 @@
     <main class="app-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">CHARADES MAKER</p>
-          <h1>몸으로 말해요 제시어 보드</h1>
+          <p class="eyebrow">WORKSHOP GAME</p>
+          <h1>게임 관리자 페이지</h1>
           <p class="hero-copy">
-            주제 5개와 제시어를 먼저 저장한 뒤, 사용 페이지에서 바로 게임을
-            진행할 수 있어요.
+            상단 게임 탭으로 `몸으로 말해요`와 `10초 그림 그리기`를 나눠 관리하고, 단계별로 내용을 저장할 수 있어요.
           </p>
         </div>
 
@@ -33,102 +32,66 @@
         </nav>
       </header>
 
-      <section class="panel play-panel" data-mode-panel="play">
-        <div class="panel-header">
-          <div>
-            <p class="section-label">PLAY MODE</p>
-            <h2>주제를 고르고 제시어를 뽑아보세요</h2>
-          </div>
-          <button class="secondary-button" id="shuffle-current-button">
-            현재 주제 다시 섞기
-          </button>
-        </div>
-
-        <div class="topic-grid" id="topic-grid"></div>
-
-        <section class="card-area">
-          <div class="status-row">
-            <div class="status-pill">
-              선택한 주제 <strong id="current-topic-name">없음</strong>
-            </div>
-            <div class="status-pill">
-              남은 제시어 <strong id="remaining-count">0</strong>
-            </div>
-          </div>
-
-          <article class="prompt-card" id="prompt-card">
-            <p class="prompt-card-label">랜덤 제시어</p>
-            <h3 id="prompt-text">먼저 주제를 선택해 주세요</h3>
-          </article>
-
-          <div class="card-actions">
-            <button class="primary-button" id="next-prompt-button">
-              다음 제시어 보기
-            </button>
-            <button class="ghost-button" id="reset-topic-button">
-              처음부터 다시
-            </button>
-          </div>
-        </section>
-      </section>
-
       <section class="panel admin-panel active" data-mode-panel="admin">
         <div class="panel-header">
           <div>
             <p class="section-label">ADMIN MODE</p>
-            <h2>주제 5개와 제시어 목록을 입력하세요</h2>
+            <h2>게임별 주제와 제시어를 입력해 주세요</h2>
           </div>
-          <button class="secondary-button" id="fill-sample-button">
-            예시 데이터 넣기
-          </button>
+          <button class="secondary-button" id="fill-sample-button" type="button">예시 데이터 넣기</button>
         </div>
 
         <p class="admin-help">
-          각 칸에는 한 줄에 제시어 하나씩 입력해 주세요. 저장하면 사용 모드에서
-          바로 선택할 수 있습니다.
+          몸으로 말해요는 주제와 제시어를, 10초 그림 그리기는 단계별 속담 목록만 입력합니다. 각 게임은 별도의 타이머를 가질 수 있어요.
         </p>
 
         <div class="connection-bar">
-          <div class="status-pill">
-            저장 방식 <strong id="storage-mode-label">확인 중</strong>
-          </div>
-          <div class="status-pill">
-            연결 상태 <strong id="connection-status-label">확인 중</strong>
-          </div>
+          <div class="status-pill">저장 방식 <strong id="storage-mode-label">확인 중</strong></div>
+          <div class="status-pill">연결 상태 <strong id="connection-status-label">확인 중</strong></div>
         </div>
+
+        <section class="stage-panel admin-game-panel">
+          <div class="game-tabs" id="admin-game-tabs"></div>
+          <div class="stage-tabs" id="admin-stage-tabs"></div>
+        </section>
 
         <section class="timer-settings">
           <div class="timer-settings-copy">
             <p class="section-label">TIMER SETTING</p>
-            <h3>기본 타이머를 설정하세요</h3>
-            <p class="admin-help">
-              사용 페이지에서 게임 시작 버튼을 누르면 이 시간으로 카운트다운이
-              시작됩니다.
-            </p>
+            <h3 id="admin-timer-title">기본 타이머를 설정하세요</h3>
+            <p class="admin-help">현재 선택한 게임 탭에만 적용되는 기본 시간입니다.</p>
           </div>
 
           <label class="timer-setting-field" for="timer-seconds-input">
-            <span>제한시간(초)</span>
-            <input
-              id="timer-seconds-input"
-              type="number"
-              min="10"
-              max="600"
-              step="5"
-              value="60"
-            />
+            <span>제한 시간(초)</span>
+            <input id="timer-seconds-input" type="number" min="5" max="600" step="5" value="60" />
           </label>
+        </section>
+
+        <section class="admin-stage-panel" id="charades-admin-tools">
+          <button class="primary-button" id="add-topic-button" type="button">+ 주제 추가</button>
         </section>
 
         <form id="admin-form" class="admin-form"></form>
 
+        <section class="drawing-editor is-hidden" id="drawing-editor">
+          <div class="topic-editor">
+            <div class="topic-editor-header">
+              <span class="topic-badge">속담</span>
+              <strong class="drawing-editor-title">단계별 속담 목록</strong>
+            </div>
+            <textarea
+              class="topic-prompts-input drawing-prompts-input"
+              id="drawing-prompts-input"
+              rows="14"
+              placeholder="속담을 한 줄에 하나씩 입력해 주세요"
+            ></textarea>
+          </div>
+        </section>
+
         <div class="admin-actions">
-          <button class="primary-button" id="save-button" type="button">
-            저장하기
-          </button>
-          <button class="ghost-button" id="clear-button" type="button">
-            전체 초기화
-          </button>
+          <button class="primary-button" id="save-button" type="button">저장하기</button>
+          <button class="ghost-button" id="clear-button" type="button">전체 초기화</button>
         </div>
       </section>
     </main>
@@ -137,17 +100,12 @@
       <section class="topic-editor">
         <div class="topic-editor-header">
           <span class="topic-badge"></span>
-          <input
-            class="topic-name-input"
-            type="text"
-            maxlength="30"
-            placeholder="주제 이름"
-          />
+          <input class="topic-name-input" type="text" maxlength="30" placeholder="주제 이름" />
         </div>
         <textarea
           class="topic-prompts-input"
           rows="8"
-          placeholder="제시어를 한 줄에 하나씩 입력하세요"
+          placeholder="제시어를 한 줄에 하나씩 입력해 주세요"
         ></textarea>
       </section>
     </template>
