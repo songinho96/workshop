@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>몸으로 말해요 제시어</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-initial-mode="play">
+    <div class="background-shape shape-one"></div>
+    <div class="background-shape shape-two"></div>
+
+    <main class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">CHARADES MAKER</p>
+          <h1>몸으로 말해요 제시어 보드</h1>
+          <p class="hero-copy">
+            관리자 모드에서 주제와 제시어를 입력하고, 사용 모드에서 랜덤 제시어를
+            바로 보여주세요.
+          </p>
+        </div>
+
+        <nav class="mode-switch page-links" aria-label="페이지 이동">
+          <a class="mode-button active" href="./play.html">사용 페이지</a>
+          <a class="mode-button" href="./admin.html">관리자 페이지</a>
+        </nav>
+      </header>
+
+      <section class="panel play-panel active" data-mode-panel="play">
+        <div class="panel-header">
+          <div>
+            <p class="section-label">PLAY MODE</p>
+            <h2>주제를 고르고 제시어를 뽑아보세요</h2>
+          </div>
+          <button class="secondary-button" id="shuffle-current-button">
+            현재 주제 다시 섞기
+          </button>
+        </div>
+
+        <div class="connection-bar">
+          <div class="status-pill">
+            불러오기 방식 <strong id="storage-mode-label">확인 중</strong>
+          </div>
+          <div class="status-pill">
+            연결 상태 <strong id="connection-status-label">확인 중</strong>
+          </div>
+        </div>
+
+        <section class="timer-panel">
+          <div class="timer-display-wrap">
+            <p class="section-label">GAME TIMER</p>
+            <div class="timer-display" id="timer-display">01:00</div>
+            <p class="timer-meta">
+              기본 시간 <strong id="timer-default-label">60초</strong>
+            </p>
+          </div>
+
+          <div class="timer-controls">
+            <button class="primary-button" id="timer-start-button" type="button">
+              타이머 시작
+            </button>
+            <button class="secondary-button" id="timer-pause-button" type="button">
+              일시정지
+            </button>
+            <button class="ghost-button" id="timer-reset-button" type="button">
+              시간 리셋
+            </button>
+          </div>
+        </section>
+
+        <div class="topic-grid" id="topic-grid"></div>
+
+        <section class="card-area">
+          <div class="status-row">
+            <div class="status-pill">
+              선택한 주제 <strong id="current-topic-name">없음</strong>
+            </div>
+            <div class="status-pill">
+              남은 제시어 <strong id="remaining-count">0</strong>
+            </div>
+          </div>
+
+          <article class="prompt-card" id="prompt-card">
+            <p class="prompt-card-label">랜덤 제시어</p>
+            <h3 id="prompt-text">먼저 주제를 선택해 주세요</h3>
+          </article>
+
+          <div class="card-actions">
+            <button class="primary-button" id="next-prompt-button">
+              다음 제시어 보기
+            </button>
+            <button class="ghost-button" id="reset-topic-button">
+              처음부터 다시
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel admin-panel" data-mode-panel="admin">
+        <div class="panel-header">
+          <div>
+            <p class="section-label">ADMIN MODE</p>
+            <h2>주제 5개와 제시어 목록을 입력하세요</h2>
+          </div>
+          <button class="secondary-button" id="fill-sample-button">
+            예시 데이터 넣기
+          </button>
+        </div>
+
+        <p class="admin-help">
+          각 칸에는 한 줄에 제시어 하나씩 입력해 주세요. 저장하면 사용 모드에서
+          바로 선택할 수 있습니다.
+        </p>
+
+        <form id="admin-form" class="admin-form"></form>
+
+        <div class="admin-actions">
+          <button class="primary-button" id="save-button" type="button">
+            저장하기
+          </button>
+          <button class="ghost-button" id="clear-button" type="button">
+            전체 초기화
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <template id="topic-editor-template">
+      <section class="topic-editor">
+        <div class="topic-editor-header">
+          <span class="topic-badge"></span>
+          <input
+            class="topic-name-input"
+            type="text"
+            maxlength="30"
+            placeholder="주제 이름"
+          />
+        </div>
+        <textarea
+          class="topic-prompts-input"
+          rows="8"
+          placeholder="제시어를 한 줄에 하나씩 입력하세요"
+        ></textarea>
+      </section>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
