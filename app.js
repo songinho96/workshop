@@ -51,6 +51,7 @@ const state = {
   currentPrompt: "",
   storageMode: "local",
   connectionStatus: "로컬 모드",
+  lastRemoteError: "",
   supabase: null,
   timerRemaining: 60,
   timerIntervalId: null,
@@ -79,7 +80,6 @@ const drawingEditor = document.querySelector("#drawing-editor");
 const drawingPromptsInput = document.querySelector("#drawing-prompts-input");
 const adminTimerTitle = document.querySelector("#admin-timer-title");
 const topicEditorTemplate = document.querySelector("#topic-editor-template");
-const storageModeLabel = document.querySelector("#storage-mode-label");
 const connectionStatusLabel = document.querySelector("#connection-status-label");
 const timerSecondsInput = document.querySelector("#timer-seconds-input");
 const timerDisplay = document.querySelector("#timer-display");
@@ -156,6 +156,7 @@ function setupSupabase() {
   state.supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
   state.storageMode = "supabase";
   state.connectionStatus = "연결 확인 중";
+  state.lastRemoteError = "";
 }
 
 async function loadAppData() {
@@ -168,10 +169,12 @@ async function loadAppData() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteData));
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(remoteSettings));
       state.connectionStatus = "Supabase 연결됨";
+      state.lastRemoteError = "";
       return { data: remoteData, settings: remoteSettings };
     } catch (error) {
       state.storageMode = "local";
-      state.connectionStatus = "원격 연결 실패, 로컬 사용";
+      state.lastRemoteError = getErrorMessage(error);
+      state.connectionStatus = `원격 연결 실패: ${state.lastRemoteError}`;
     }
   }
 
@@ -476,9 +479,11 @@ async function handleSave() {
       await Promise.all([saveDataToSupabase(state.data), saveSettingsToSupabase(state.settings)]);
       state.storageMode = "supabase";
       state.connectionStatus = "Supabase 저장 완료";
+      state.lastRemoteError = "";
     } catch (error) {
       state.storageMode = "local";
-      state.connectionStatus = "원격 저장 실패, 로컬 저장";
+      state.lastRemoteError = getErrorMessage(error);
+      state.connectionStatus = `원격 저장 실패: ${state.lastRemoteError}`;
     }
   }
 
@@ -511,9 +516,11 @@ async function handleClear() {
       await Promise.all([clearDataInSupabase(), resetSettingsInSupabase()]);
       state.storageMode = "supabase";
       state.connectionStatus = "Supabase 초기화 완료";
+      state.lastRemoteError = "";
     } catch (error) {
       state.storageMode = "local";
-      state.connectionStatus = "원격 초기화 실패";
+      state.lastRemoteError = getErrorMessage(error);
+      state.connectionStatus = `원격 초기화 실패: ${state.lastRemoteError}`;
     }
   }
 
@@ -1061,12 +1068,28 @@ function handlePresentationShortcuts(event) {
 }
 
 function updateConnectionLabels() {
-  if (storageModeLabel) {
-    storageModeLabel.textContent = state.storageMode === "supabase" ? "Supabase" : "브라우저 로컬";
+  if (connectionStatusLabel) {
+    connectionStatusLabel.textContent = state.storageMode === "supabase" ? "연결됨" : "연결안됨";
+  }
+}
+
+function getErrorMessage(error) {
+  if (!error) {
+    return "알 수 없는 오류";
   }
 
-  if (connectionStatusLabel) {
-    connectionStatusLabel.textContent = state.connectionStatus;
+  if (typeof error.message === "string" && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error.trim();
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch (stringifyError) {
+    return "알 수 없는 오류";
   }
 }
 
