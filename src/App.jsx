@@ -54,6 +54,8 @@ function TabSet({ items, activeKey, onClick, type, disabled = false }) {
 }
 
 function TopicEditor({ index, topic, onChange, onRemove }) {
+  const promptCount = topic.prompts.filter((prompt) => prompt.trim()).length;
+
   return (
     <section className="topic-editor">
       <div className="topic-editor-header">
@@ -66,6 +68,7 @@ function TopicEditor({ index, topic, onChange, onRemove }) {
           value={topic.name}
           onChange={(event) => onChange(index, { ...topic, name: event.target.value })}
         />
+        <span className="prompt-count-badge">{promptCount}개</span>
         <button type="button" className="remove-topic-button" onClick={() => onRemove(index)}>
           삭제
         </button>
@@ -91,6 +94,10 @@ export default function App({ initialMode }) {
   const timerIntervalRef = useRef(null);
   const [data, setData] = useState(() => createEmptyGameData());
   const [settings, setSettings] = useState(() => createDefaultSettings());
+  const [adminTimerDrafts, setAdminTimerDrafts] = useState(() => ({
+    charades: String(createDefaultSettings().charades),
+    drawing: String(createDefaultSettings().drawing),
+  }));
   const [adminGameKey, setAdminGameKey] = useState(GAME_TYPES[0].key);
   const [adminStageKey, setAdminStageKey] = useState(STAGES[0].key);
   const [currentGameKey, setCurrentGameKey] = useState(null);
@@ -125,6 +132,7 @@ export default function App({ initialMode }) {
   const adminGame = GAME_TYPES.find((game) => game.key === adminGameKey) || GAME_TYPES[0];
   const adminTopics = data.charades[adminStageKey] || [];
   const drawingPhrases = data.drawing[adminStageKey] || [];
+  const drawingPromptCount = drawingPhrases.filter((phrase) => phrase.trim()).length;
 
   function getCurrentPromptSource() {
     if (!currentGame || !currentStageKey) {
@@ -225,6 +233,13 @@ export default function App({ initialMode }) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    setAdminTimerDrafts({
+      charades: String(settings.charades),
+      drawing: String(settings.drawing),
+    });
+  }, [settings]);
 
   useEffect(() => {
     document.body.classList.toggle("presentation-mode", isPresentationMode);
@@ -338,6 +353,46 @@ export default function App({ initialMode }) {
     setTimerRemaining(settings.charades);
   }
 
+  function goBackPresentationStep() {
+    if (!isPresentationMode) {
+      return;
+    }
+
+    if (currentOptionKey) {
+      setCurrentOptionKey(null);
+      setPromptQueue([]);
+      setPromptHistory([]);
+      setCurrentPrompt("");
+      pauseTimer();
+      resetTimer();
+      return;
+    }
+
+    if (currentGame?.kind === "topics" && currentTopicIndex !== null) {
+      setCurrentTopicIndex(null);
+      setPromptQueue([]);
+      setPromptHistory([]);
+      setCurrentPrompt("");
+      return;
+    }
+
+    if (currentStageKey) {
+      setCurrentStageKey(null);
+      setCurrentTopicIndex(null);
+      setCurrentOptionKey(null);
+      setPromptQueue([]);
+      setPromptHistory([]);
+      setCurrentPrompt("");
+      pauseTimer();
+      resetTimer(currentGameKey || GAME_TYPES[0].key);
+      return;
+    }
+
+    if (currentGameKey) {
+      restartFlow();
+    }
+  }
+
   function showNextPrompt() {
     if (!currentOption) {
       return;
@@ -444,12 +499,24 @@ export default function App({ initialMode }) {
     }));
   }
 
-  function updateTimerSetting(gameKey, value) {
+  function updateTimerSettingDraft(gameKey, value) {
+    setAdminTimerDrafts((previous) => ({
+      ...previous,
+      [gameKey]: value,
+    }));
+  }
+
+  function commitTimerSetting(gameKey) {
+    const rawValue = adminTimerDrafts[gameKey];
     const nextSettings = normalizeSettings({
       ...settings,
-      [gameKey]: Number(value),
+      [gameKey]: Number(rawValue),
     });
     setSettings(nextSettings);
+    setAdminTimerDrafts((previous) => ({
+      ...previous,
+      [gameKey]: String(nextSettings[gameKey]),
+    }));
 
     if (currentGameKey === gameKey || (!currentGameKey && gameKey === GAME_TYPES[0].key)) {
       pauseTimer();
@@ -482,8 +549,15 @@ export default function App({ initialMode }) {
 
   async function handleSave() {
     const nextData = pruneEmptyAdminData(data);
+    const nextSettings = normalizeSettings({
+      ...settings,
+      charades: Number(adminTimerDrafts.charades),
+      drawing: Number(adminTimerDrafts.drawing),
+    });
+
     setData(nextData);
-    persistLocalState(nextData, settings);
+    setSettings(nextSettings);
+    persistLocalState(nextData, nextSettings);
     resetTimer();
 
     const supabase = supabaseRef.current;
@@ -491,7 +565,7 @@ export default function App({ initialMode }) {
       try {
         await Promise.all([
           saveDataToSupabase(supabase, nextData),
-          saveSettingsToSupabase(supabase, settings),
+          saveSettingsToSupabase(supabase, nextSettings),
         ]);
         setStorageMode("supabase");
         setConnectionStatus("연결됨");
@@ -804,8 +878,9 @@ export default function App({ initialMode }) {
                   min="5"
                   max="600"
                   step="5"
-                  value={settings[adminGameKey]}
-                  onChange={(event) => updateTimerSetting(adminGameKey, event.target.value)}
+                  value={adminTimerDrafts[adminGameKey] ?? ""}
+                  onChange={(event) => updateTimerSettingDraft(adminGameKey, event.target.value)}
+                  onBlur={() => commitTimerSetting(adminGameKey)}
                 />
               </label>
             </section>
@@ -821,7 +896,7 @@ export default function App({ initialMode }) {
                 <form className="admin-form">
                   {(adminTopics.length ? adminTopics : [createEmptyTopic()]).map((topic, index) => (
                     <TopicEditor
-                      key={`${index}-${topic.name}`}
+                      key={`topic-editor-${index}`}
                       index={index}
                       topic={topic}
                       onChange={updateAdminTopic}
@@ -836,6 +911,7 @@ export default function App({ initialMode }) {
                   <div className="topic-editor-header">
                     <span className="topic-badge">속담</span>
                     <strong className="drawing-editor-title">단계별 속담 목록</strong>
+                    <span className="prompt-count-badge">{drawingPromptCount}개</span>
                   </div>
                   <textarea
                     className="topic-prompts-input drawing-prompts-input"
@@ -852,13 +928,32 @@ export default function App({ initialMode }) {
               <button className="primary-button" type="button" onClick={handleSave}>
                 저장하기
               </button>
-              <button className="ghost-button" type="button" onClick={handleClear}>
-                전체 초기화
-              </button>
             </div>
           </section>
         )}
       </main>
+
+      {initialMode === "play" ? (
+        <button
+          className="presentation-back-button"
+          type="button"
+          aria-label="이전 단계로 돌아가기"
+          title="이전 단계로 돌아가기"
+          onClick={goBackPresentationStep}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M15 18l-6-6 6-6"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          </svg>
+          <span>뒤로가기</span>
+        </button>
+      ) : null}
 
       {initialMode === "play" ? (
         <button

@@ -565,6 +565,30 @@ button:disabled {
   pointer-events: none;
 }
 
+.presentation-back-button {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--accent-deep);
+  border: 1px solid rgba(47, 128, 237, 0.16);
+  box-shadow: 0 10px 24px rgba(47, 128, 237, 0.12);
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.presentation-back-button svg {
+  width: 20px;
+  height: 20px;
+}
+
 body.presentation-mode {
   overflow: hidden;
 }
@@ -778,6 +802,11 @@ body.presentation-mode .presentation-exit-button {
   pointer-events: auto;
 }
 
+body.presentation-mode .presentation-back-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .card-actions,
 .admin-actions {
   display: flex;
@@ -804,6 +833,7 @@ body.presentation-mode .presentation-exit-button {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .topic-badge {
@@ -815,6 +845,16 @@ body.presentation-mode .presentation-exit-button {
   background: var(--accent-soft);
   color: var(--accent-deep);
   font-weight: 900;
+}
+
+.prompt-count-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(47, 128, 237, 0.1);
+  color: var(--accent-deep);
+  border: 1px solid rgba(47, 128, 237, 0.12);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .topic-name-input,
