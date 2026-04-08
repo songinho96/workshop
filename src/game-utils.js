@@ -166,23 +166,29 @@ function createSeededRandom(seedSource) {
   };
 }
 
-export function buildPromptOptions(prompts) {
+export function buildPromptOptions(prompts, optionCount = 2) {
   if (!prompts.length) {
     return [];
   }
 
   const shuffled = seededShuffle(prompts, prompts.join("|"));
-  const midpoint = Math.ceil(shuffled.length / 2);
-  const first = shuffled.slice(0, midpoint);
-  const second = shuffled.slice(midpoint);
   const options = [];
+  const safeOptionCount = Math.max(1, optionCount);
+  const chunkSize = Math.ceil(shuffled.length / safeOptionCount);
 
-  if (first.length) {
-    options.push({ key: "option1", label: "1안", prompts: first });
-  }
+  for (let index = 0; index < safeOptionCount; index += 1) {
+    const start = index * chunkSize;
+    const chunk = shuffled.slice(start, start + chunkSize);
 
-  if (second.length) {
-    options.push({ key: "option2", label: "2안", prompts: second });
+    if (!chunk.length) {
+      continue;
+    }
+
+    options.push({
+      key: `option${index + 1}`,
+      label: `${index + 1}안`,
+      prompts: chunk,
+    });
   }
 
   return options;

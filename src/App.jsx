@@ -111,7 +111,7 @@ export default function App({ initialMode }) {
   const currentTopics = currentStageKey ? data.charades[currentStageKey] || [] : [];
   const currentTopic = currentTopicIndex === null ? null : currentTopics[currentTopicIndex] || null;
   const currentPromptSource = getCurrentPromptSource();
-  const promptOptions = buildPromptOptions(currentPromptSource);
+  const promptOptions = buildPromptOptions(currentPromptSource, getOptionCount());
   const currentOption =
     promptOptions.find((option) => option.key === currentOptionKey) || null;
   const presentationStage = getPresentationStage({
@@ -136,6 +136,14 @@ export default function App({ initialMode }) {
     }
 
     return data.drawing[currentStageKey] || [];
+  }
+
+  function getOptionCount() {
+    if (currentGameKey === "drawing" && currentStageKey === "semifinal") {
+      return 4;
+    }
+
+    return 2;
   }
 
   function pauseTimer() {
